@@ -1,7 +1,7 @@
 from app.db.database import SessionLocal
 from app.models import Item
 from app.services.content import fetch_and_extract
-
+from app.services.ai import analyze_content
 
 def process_item_content(item_id: int, user_id: int):
     db = SessionLocal()
@@ -21,8 +21,20 @@ def process_item_content(item_id: int, user_id: int):
 
         try:
             content = fetch_and_extract(item.url)
+
             item.content = content
+            item.summary = None
+            item.tags = None
             item.processing_error = None
+
+            try:
+                analysis = analyze_content(content)
+
+                item.summary = analysis.summary
+                item.tags = analysis.tags
+
+            except Exception as e:
+                item.processing_error = str(e)
 
         except Exception as e:
             item.processing_error = str(e)

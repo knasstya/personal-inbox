@@ -16,6 +16,8 @@ class ItemResponse(BaseModel):
     title: str
     url: str
     content: str | None
+    summary: str | None
+    tags: list[str] | None
     processing_error: str | None
 
     model_config = ConfigDict(from_attributes=True)

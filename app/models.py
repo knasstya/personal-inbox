@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON
 from app.db.database import Base
 
 
@@ -9,8 +9,11 @@ class Item(Base):
     title = Column(String, nullable=False)
     url = Column(String, nullable=False)
     content = Column(Text, nullable=True)
+    summary = Column(Text, nullable=True)
+    tags = Column(JSON, nullable=True)
     processing_error = Column(Text, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
 
 class User(Base):
     __tablename__ = "users"

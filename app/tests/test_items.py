@@ -1,5 +1,5 @@
 from app.services.items import process_item_content
-
+from app.schemas.ai import AIAnalysis
 
 def test_get_items(auth_client):
     response = auth_client.get("/items/")
@@ -181,9 +181,20 @@ def test_process_item_content_success(auth_client, user_id, monkeypatch):
     def fake_fetch_and_extract(url):
         return "Extracted test content"
 
+    def fake_analyze_content(content):
+        return AIAnalysis(
+            summary="A test summary",
+            tags=["testing", "fastapi"],
+        )
+
     monkeypatch.setattr(
         "app.services.items.fetch_and_extract",
         fake_fetch_and_extract,
+    )
+
+    monkeypatch.setattr(
+        "app.services.items.analyze_content",
+        fake_analyze_content,
     )
 
     process_item_content(item_id, user_id)
@@ -195,6 +206,8 @@ def test_process_item_content_success(auth_client, user_id, monkeypatch):
     data = response.json()
 
     assert data["content"] == "Extracted test content"
+    assert data["summary"] == "A test summary"
+    assert data["tags"] == ["testing", "fastapi"]
     assert data["processing_error"] is None
 
 
