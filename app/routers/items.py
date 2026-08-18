@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends, Query
 
 from app.schemas.items import ItemCreate, ItemUpdate, ItemResponse
 from app.services.items import (
@@ -20,6 +20,8 @@ router = APIRouter()
 def get_items(
     q: str | None = None,
     tag: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    offset: int = Query(0, ge=0),
     user_id: int = Depends(get_current_user_id),
 ):
     if q or tag:
@@ -27,9 +29,15 @@ def get_items(
             query=q,
             tag=tag,
             user_id=user_id,
+            limit=limit,
+            offset=offset,
         )
 
-    return get_items_service(user_id)
+    return get_items_service(
+        user_id=user_id,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/{item_id}", response_model=ItemResponse)

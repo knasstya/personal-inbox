@@ -8,6 +8,8 @@ def search_items(
     user_id: int,
     query: str | None = None,
     tag: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
 ) -> list[Item]:
     filters = [
         Item.user_id == user_id,
@@ -38,5 +40,8 @@ def search_items(
     return (
         db.query(Item)
         .filter(*filters)
+        .order_by(Item.id.desc())
+        .offset(offset)
+        .limit(limit)
         .all()
     )

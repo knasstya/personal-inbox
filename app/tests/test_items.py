@@ -244,7 +244,7 @@ def test_process_item_content_failure(auth_client, user_id, monkeypatch):
 
     assert data["processing_error"] == "Test processing error"
     assert data["processing_status"] == "failed"
-    
+
 
 def test_get_items_requires_auth(client):
     response = client.get("/items/")
@@ -403,3 +403,121 @@ def test_filter_items_by_tag_api(auth_client, db_session, user_id):
     assert len(data) == 1
     assert data[0]["title"] == "FastAPI Guide"
     assert data[0]["tags"] == ["python", "fastapi"]
+
+def test_get_items_pagination(auth_client, db_session, user_id):
+    items = [
+        Item(
+            title=f"Item {number}",
+            url=f"https://example.com/{number}",
+            user_id=user_id,
+        )
+        for number in range(1, 6)
+    ]
+
+    db_session.add_all(items)
+    db_session.commit()
+
+    response = auth_client.get(
+        "/items/",
+        params={
+            "limit": 2,
+            "offset": 0,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+    assert data[0]["title"] == "Item 5"
+    assert data[1]["title"] == "Item 4"
+
+    response = auth_client.get(
+        "/items/",
+        params={
+            "limit": 2,
+            "offset": 2,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+    assert data[0]["title"] == "Item 3"
+    assert data[1]["title"] == "Item 2"
+
+def test_get_items_invalid_limit(auth_client):
+    response = auth_client.get(
+        "/items/",
+        params={"limit": 101},
+    )
+
+    assert response.status_code == 422
+
+
+def test_get_items_invalid_offset(auth_client):
+    response = auth_client.get(
+        "/items/",
+        params={"offset": -1},
+    )
+
+    assert response.status_code == 422
+
+def test_search_items_pagination(auth_client, db_session, user_id):
+    items = [
+        Item(
+            title=f"FastAPI Guide {number}",
+            url=f"https://example.com/fastapi-{number}",
+            summary="FastAPI guide",
+            content="FastAPI content",
+            tags=["fastapi"],
+            user_id=user_id,
+        )
+        for number in range(1, 5)
+    ]
+
+    db_session.add_all(items)
+    db_session.commit()
+
+    response = auth_client.get(
+        "/items/",
+        params={
+            "q": "FastAPI",
+            "limit": 2,
+            "offset": 0,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+    assert data[0]["title"] == "FastAPI Guide 4"
+    assert data[1]["title"] == "FastAPI Guide 3"
+
+def test_create_item_rejects_invalid_url(auth_client):
+    response = auth_client.post(
+        "/items/",
+        json={
+            "title": "Invalid URL",
+            "url": "not-a-url",
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_create_item_rejects_blank_title(auth_client):
+    response = auth_client.post(
+        "/items/",
+        json={
+            "title": "",
+            "url": "https://example.com",
+        },
+    )
+
+    assert response.status_code == 422

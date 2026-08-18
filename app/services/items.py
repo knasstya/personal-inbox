@@ -77,13 +77,20 @@ def create_item(title: str, url: str, user_id: int):
         db.close()
 
 
-def get_items(user_id: int):
+def get_items(
+    user_id: int,
+    limit: int = 20,
+    offset: int = 0,
+):
     db = SessionLocal()
 
     try:
         return (
             db.query(Item)
             .filter(Item.user_id == user_id)
+            .order_by(Item.id.desc())
+            .offset(offset)
+            .limit(limit)
             .all()
         )
 
@@ -95,6 +102,8 @@ def search_items(
     user_id: int,
     query: str | None = None,
     tag: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
 ):
     db = SessionLocal()
 
@@ -104,6 +113,8 @@ def search_items(
             user_id=user_id,
             query=query,
             tag=tag,
+            limit=limit,
+            offset=offset,
         )
     finally:
         db.close()
