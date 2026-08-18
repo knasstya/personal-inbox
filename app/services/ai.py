@@ -16,9 +16,14 @@ def analyze_content(content: str) -> AIAnalysis:
         model="gemini-3.6-flash",
         contents=(
             "Analyze the following saved web content for a personal knowledge "
-            "inbox. Produce a concise summary and a small set of useful tags. "
+            "inbox. Produce a concise summary and 3 to 5 useful tags. "
+            "Tags must be lowercase, concise, and unique. "
             "Tags should describe the main topics, technologies, concepts, "
-            "or subject areas. Avoid overly generic tags.\n\n"
+            "or subject areas. Prefer specific and useful tags over generic ones. "
+            "Avoid tags such as 'article', 'guide', 'content', 'technology', "
+            "or 'web' unless they are genuinely important to the content. "
+            "Use consistent lowercase names for technologies and concepts, "
+            "for example 'fastapi' rather than 'FastAPI'.\n\n"
             f"CONTENT:\n{content}"
         ),
         config=types.GenerateContentConfig(

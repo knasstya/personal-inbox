@@ -19,5 +19,5 @@ class ItemResponse(BaseModel):
     summary: str | None
     tags: list[str] | None
     processing_error: str | None
-
+    processing_status: str
     model_config = ConfigDict(from_attributes=True)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, JSON, CheckConstraint
 from app.db.database import Base
 
 
@@ -12,7 +12,20 @@ class Item(Base):
     summary = Column(Text, nullable=True)
     tags = Column(JSON, nullable=True)
     processing_error = Column(Text, nullable=True)
+    processing_status = Column(
+        String(20),
+        nullable=False,
+        default="pending",
+        server_default="pending",
+    )
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            "processing_status IN ('pending', 'processing', 'completed', 'failed')",
+            name="ck_items_processing_status",
+        ),
+    )
 
 
 class User(Base):

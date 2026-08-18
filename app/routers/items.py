@@ -19,11 +19,13 @@ router = APIRouter()
 @router.get("/", response_model=list[ItemResponse])
 def get_items(
     q: str | None = None,
+    tag: str | None = None,
     user_id: int = Depends(get_current_user_id),
 ):
-    if q:
+    if q or tag:
         return search_items_service(
             query=q,
+            tag=tag,
             user_id=user_id,
         )
 

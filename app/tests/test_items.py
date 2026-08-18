@@ -24,7 +24,7 @@ def test_create_item(auth_client):
 
     assert data["title"] == "Test Item"
     assert data["url"] == "https://example.com"
-
+    assert data["processing_status"] == "pending"
 
 def test_get_item(auth_client):
     create_response = auth_client.post(
@@ -210,6 +210,7 @@ def test_process_item_content_success(auth_client, user_id, monkeypatch):
     assert data["summary"] == "A test summary"
     assert data["tags"] == ["testing", "fastapi"]
     assert data["processing_error"] is None
+    assert data["processing_status"] == "completed"
 
 
 def test_process_item_content_failure(auth_client, user_id, monkeypatch):
@@ -242,7 +243,8 @@ def test_process_item_content_failure(auth_client, user_id, monkeypatch):
     data = response.json()
 
     assert data["processing_error"] == "Test processing error"
-
+    assert data["processing_status"] == "failed"
+    
 
 def test_get_items_requires_auth(client):
     response = client.get("/items/")
@@ -303,3 +305,101 @@ def test_search_items(auth_client):
 
     assert len(data) == 1
     assert data[0]["title"] == "FastAPI Guide"
+
+def test_search_items_by_query_and_tag(auth_client, db_session, user_id):
+    matching_item = Item(
+        title="FastAPI Authentication",
+        url="https://example.com/fastapi-auth",
+        summary="Authentication with FastAPI",
+        content="FastAPI authentication using JWT.",
+        tags=["fastapi", "authentication"],
+        user_id=user_id,
+    )
+
+    wrong_tag_item = Item(
+        title="FastAPI Database Guide",
+        url="https://example.com/fastapi-db",
+        summary="Database guide",
+        content="FastAPI with PostgreSQL.",
+        tags=["fastapi", "database"],
+        user_id=user_id,
+    )
+
+    db_session.add_all([matching_item, wrong_tag_item])
+    db_session.commit()
+
+    response = auth_client.get(
+        "/items/",
+        params={
+            "q": "authentication",
+            "tag": "fastapi",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["title"] == "FastAPI Authentication"
+
+
+def test_process_item_api_schedules_processing(auth_client):
+    create_response = auth_client.post(
+        "/items/",
+        json={
+            "title": "AI Test Item",
+            "url": "https://example.com/ai-test",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    item_id = create_response.json()["id"]
+
+    response = auth_client.post(
+        f"/items/{item_id}/process"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["id"] == item_id
+    assert data["title"] == "AI Test Item"
+    assert data["url"] == "https://example.com/ai-test"
+
+def test_filter_items_by_tag_api(auth_client, db_session, user_id):
+    matching_item = Item(
+        title="FastAPI Guide",
+        url="https://example.com/fastapi",
+        summary="A guide to FastAPI",
+        content="FastAPI provides tools for creating web APIs.",
+        tags=["python", "fastapi"],
+        user_id=user_id,
+    )
+
+    non_matching_item = Item(
+        title="Cooking Guide",
+        url="https://example.com/cooking",
+        summary="A guide to cooking",
+        content="Cooking recipes and techniques.",
+        tags=["cooking", "food"],
+        user_id=user_id,
+    )
+
+    db_session.add_all([matching_item, non_matching_item])
+    db_session.commit()
+
+    response = auth_client.get(
+        "/items/",
+        params={"tag": "fastapi"},
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["title"] == "FastAPI Guide"
+    assert data[0]["tags"] == ["python", "fastapi"]

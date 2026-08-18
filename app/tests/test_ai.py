@@ -41,3 +41,21 @@ def test_analyze_content_empty():
         assert False, "Expected ValueError"
     except ValueError as exc:
         assert str(exc) == "Content cannot be empty."
+
+def test_analyze_content_no_structured_analysis(monkeypatch):
+    class FakeResponse:
+        parsed = None
+
+    def fake_generate_content(**kwargs):
+        return FakeResponse()
+
+    monkeypatch.setattr(
+        "app.services.ai.client.models.generate_content",
+        fake_generate_content,
+    )
+
+    try:
+        analyze_content("Some valid content.")
+        assert False, "Expected ValueError"
+    except ValueError as exc:
+        assert str(exc) == "Gemini returned no structured analysis."

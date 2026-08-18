@@ -20,24 +20,32 @@ def process_item_content(item_id: int, user_id: int):
         if item is None:
             return None
 
+        item.processing_status = "processing"
+        item.processing_error = None
+
+        db.commit()
+        db.refresh(item)
+
         try:
             content = fetch_and_extract(item.url)
 
             item.content = content
             item.summary = None
             item.tags = None
-            item.processing_error = None
 
             try:
                 analysis = analyze_content(content)
 
                 item.summary = analysis.summary
                 item.tags = analysis.tags
+                item.processing_status = "completed"
 
             except Exception as e:
+                item.processing_status = "failed"
                 item.processing_error = str(e)
 
         except Exception as e:
+            item.processing_status = "failed"
             item.processing_error = str(e)
 
         db.commit()
@@ -83,7 +91,11 @@ def get_items(user_id: int):
         db.close()
 
 
-def search_items(query: str, user_id: int):
+def search_items(
+    user_id: int,
+    query: str | None = None,
+    tag: str | None = None,
+):
     db = SessionLocal()
 
     try:
@@ -91,6 +103,7 @@ def search_items(query: str, user_id: int):
             db=db,
             user_id=user_id,
             query=query,
+            tag=tag,
         )
     finally:
         db.close()
