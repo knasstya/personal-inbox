@@ -1,4 +1,5 @@
-from app.services.items import process_item_content
+from app.models import Item
+from app.services.items import process_item_content, search_items
 from app.schemas.ai import AIAnalysis
 
 def test_get_items(auth_client):
@@ -247,3 +248,58 @@ def test_get_items_requires_auth(client):
     response = client.get("/items/")
 
     assert response.status_code == 401
+
+def test_search_items_service(db_session, client, user_id):
+    item = Item(
+        title="FastAPI Guide",
+        url="https://example.com/fastapi",
+        summary="A guide to building APIs with Python",
+        content="FastAPI provides tools for creating web APIs.",
+        tags=["python", "fastapi"],
+        user_id=user_id,
+    )
+
+    db_session.add(item)
+    db_session.commit()
+
+    results = search_items(
+        query="fastapi",
+        user_id=user_id,
+    )
+
+    assert len(results) == 1
+    assert results[0].title == "FastAPI Guide"
+
+
+def test_search_items(auth_client):
+    first_response = auth_client.post(
+        "/items/",
+        json={
+            "title": "FastAPI Guide",
+            "url": "https://example.com/fastapi",
+        },
+    )
+
+    assert first_response.status_code == 200
+
+    second_response = auth_client.post(
+        "/items/",
+        json={
+            "title": "Cooking Guide",
+            "url": "https://example.com/cooking",
+        },
+    )
+
+    assert second_response.status_code == 200
+
+    response = auth_client.get(
+        "/items/",
+        params={"q": "FastAPI"},
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+    assert data[0]["title"] == "FastAPI Guide"

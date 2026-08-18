@@ -4,6 +4,7 @@ from app.schemas.items import ItemCreate, ItemUpdate, ItemResponse
 from app.services.items import (
     create_item as create_item_service,
     get_items as get_items_service,
+    search_items as search_items_service,
     get_item as get_item_service,
     delete_item as delete_item_service,
     update_item as update_item_service,
@@ -16,7 +17,16 @@ router = APIRouter()
 
 
 @router.get("/", response_model=list[ItemResponse])
-def get_items(user_id: int = Depends(get_current_user_id)):
+def get_items(
+    q: str | None = None,
+    user_id: int = Depends(get_current_user_id),
+):
+    if q:
+        return search_items_service(
+            query=q,
+            user_id=user_id,
+        )
+
     return get_items_service(user_id)
 
 

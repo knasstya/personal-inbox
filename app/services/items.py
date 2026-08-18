@@ -2,6 +2,7 @@ from app.db.database import SessionLocal
 from app.models import Item
 from app.services.content import fetch_and_extract
 from app.services.ai import analyze_content
+from app.repositories.items import search_items as search_items_repository
 
 def process_item_content(item_id: int, user_id: int):
     db = SessionLocal()
@@ -78,6 +79,19 @@ def get_items(user_id: int):
             .all()
         )
 
+    finally:
+        db.close()
+
+
+def search_items(query: str, user_id: int):
+    db = SessionLocal()
+
+    try:
+        return search_items_repository(
+            db=db,
+            user_id=user_id,
+            query=query,
+        )
     finally:
         db.close()
 
