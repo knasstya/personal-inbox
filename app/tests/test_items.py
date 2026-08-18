@@ -242,7 +242,9 @@ def test_process_item_content_failure(auth_client, user_id, monkeypatch):
 
     data = response.json()
 
-    assert data["processing_error"] == "Test processing error"
+    assert data["processing_error"] == (
+    "Failed to fetch and extract content."
+    )
     assert data["processing_status"] == "failed"
 
 

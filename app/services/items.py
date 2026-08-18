@@ -1,8 +1,12 @@
+import logging
+
 from app.db.database import SessionLocal
 from app.models import Item
 from app.services.content import fetch_and_extract
 from app.services.ai import analyze_content
 from app.repositories.items import search_items as search_items_repository
+
+logger = logging.getLogger(__name__)
 
 def process_item_content(item_id: int, user_id: int):
     db = SessionLocal()
@@ -40,13 +44,21 @@ def process_item_content(item_id: int, user_id: int):
                 item.tags = analysis.tags
                 item.processing_status = "completed"
 
-            except Exception as e:
+            except Exception:
+                logger.exception(
+                    "Failed to analyze content for item %s",
+                    item.id,
+                )
                 item.processing_status = "failed"
-                item.processing_error = str(e)
+                item.processing_error = "Failed to analyze content."
 
-        except Exception as e:
+        except Exception:
+            logger.exception(
+                "Failed to fetch and extract content for item %s",
+                item.id,
+            )
             item.processing_status = "failed"
-            item.processing_error = str(e)
+            item.processing_error = "Failed to fetch and extract content."
 
         db.commit()
         db.refresh(item)
