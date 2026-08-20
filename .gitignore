@@ -3,3 +3,4 @@
 __pycache__/
 .pytest_cache/
 *.pyc
+personal_inbox_backup.sql

@@ -13,7 +13,7 @@ def analyze_content(content: str) -> AIAnalysis:
         raise ValueError("Content cannot be empty.")
 
     response = client.models.generate_content(
-        model="gemini-3.6-flash",
+        model=settings.gemini_model,
         contents=(
             "Analyze the following saved web content for a personal knowledge "
             "inbox. Produce a concise summary and 3 to 5 useful tags. "
