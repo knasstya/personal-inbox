@@ -26,13 +26,21 @@ def upgrade() -> None:
         sa.Column("email", sa.String(), nullable=False),
         sa.Column("hashed_password", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("username"),
-        sa.UniqueConstraint("email"),
     )
 
     op.create_index("ix_users_id", "users", ["id"], unique=False)
-    op.create_index("ix_users_username", "users", ["username"], unique=False)
-    op.create_index("ix_users_email", "users", ["email"], unique=False)
+    op.create_index(
+        "ix_users_username",
+        "users",
+        ["username"],
+        unique=True,
+    )
+    op.create_index(
+        "ix_users_email",
+        "users",
+        ["email"],
+        unique=True,
+    )
 
     op.create_table(
         "items",
