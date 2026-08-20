@@ -1,3 +1,4 @@
+from app.config import settings
 from app.schemas.ai import AIAnalysis
 from app.services.ai import analyze_content
 
@@ -10,7 +11,7 @@ def test_analyze_content(monkeypatch):
         )
 
     def fake_generate_content(**kwargs):
-        assert kwargs["model"] == "gemini-3.6-flash"
+        assert kwargs["model"] == settings.gemini_model
         assert "FastAPI" in kwargs["contents"]
 
         return FakeResponse()
