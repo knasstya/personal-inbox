@@ -52,7 +52,7 @@ requirements.txt
 # clone and set up environment
 git clone https://github.com/knasstya/personal-inbox.git
 cd personal-inbox
-cp .env.example .env   # add DATABASE_URL, JWT_SECRET, GEMINI_API_KEY
+# create a .env file with: DATABASE_URL, JWT_SECRET, GEMINI_API_KEY
 
 # run with Docker Compose
 docker compose up --build
