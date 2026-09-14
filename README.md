@@ -20,8 +20,11 @@ A full-stack personal knowledge inbox for saving web resources, extracting their
 ## Tech Stack
 
 **Backend:** Python 3.10, FastAPI, SQLAlchemy, Alembic, Pydantic, JWT, Google Gemini API
+
 **Frontend:** React, TypeScript, Vite
+
 **Infrastructure:** PostgreSQL 16, Docker / Docker Compose, GitHub Actions, Nginx (production build)
+
 
 ## Project Structure
 
@@ -41,6 +44,18 @@ alembic/            # Database migrations
 Dockerfile
 compose.yaml
 requirements.txt
+```
+
+## Local Setup
+
+```bash
+# clone and set up environment
+git clone https://github.com/knasstya/personal-inbox.git
+cd personal-inbox
+cp .env.example .env   # add DATABASE_URL, JWT_SECRET, GEMINI_API_KEY
+
+# run with Docker Compose
+docker compose up --build
 ```
 
 - Frontend: http://localhost:5173
